@@ -21,7 +21,7 @@ export async function createUser(req, res) {
         users(name, email, password, image) 
       VALUES ($1, $2, $3, $4)
     `,
-      [user.name, user.email, passwordHash, user.pictureUrl]
+      [user.username, user.email, passwordHash, user.pictureUrl]
     );
 
     res.sendStatus(201);
