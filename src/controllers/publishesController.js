@@ -1,16 +1,10 @@
-import connection from "../server";
+import connection from "../server.js";
 
 export async function postPublish(req, res) {
     const {link, text} = req.body;
-    const {authorization} = req.headers;
-    const token = authorization?.replace("Bearer ", "");
+    const userId = res.locals.userId;
 
     try {
-        const result = await connection.query(`
-            SELECT * FROM sessions WHERE token = $1;
-        `, [token]);
-        const userId = result[0].userId;
-
         await connection.query(`
             INSERT INTO posts
                 (userId, link, text)

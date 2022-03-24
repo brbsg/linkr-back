@@ -1,8 +1,8 @@
 import Joi from "joi";
 
 const publicationSchema = Joi.object({
-    link: joi.string().required(),
-    text: joi.string(),
+    link: Joi.string().uri().required(),
+    text: Joi.string(),
 });
   
 export default publicationSchema;
