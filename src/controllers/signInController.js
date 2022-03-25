@@ -20,21 +20,22 @@ export async function signIn(req, res) {
       [dbUser[0].id]
     );
 
-    if (dbSession[0]) {
-      await connection.query('DELETE FROM sessions WHERE "userId"=$1', [
-        dbUser[0].id,
-      ]);
-    }
-
     if (bcrypt.compareSync(password, dbUser[0].password)) {
       const token = jwt.sign({ name: dbUser.name }, process.env.JWT_SECRET, {
         expiresIn: 86400,
       });
 
-      await connection.query(
-        'INSERT INTO sessions (token, "userId") VALUES ($1, $2)',
-        [token, dbUser[0].id]
-      );
+      if (dbSession[0]) {
+        await connection.query(
+          'UPDATE sessions SET token=$1 WHERE "userId"=$2',
+          [token, dbUser[0].id]
+        );
+      } else {
+        await connection.query(
+          'INSERT INTO sessions (token, "userId") VALUES ($1, $2)',
+          [token, dbUser[0].id]
+        );
+      }
 
       return res.send(token);
     }
