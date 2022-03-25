@@ -24,6 +24,7 @@ export async function signIn(req, res) {
       const token = jwt.sign({ name: dbUser.name }, process.env.JWT_SECRET, {
         expiresIn: 86400,
       });
+      console.log(token)
 
       if (dbSession[0]) {
         await connection.query(
