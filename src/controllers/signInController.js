@@ -21,9 +21,13 @@ export async function signIn(req, res) {
     );
 
     if (bcrypt.compareSync(password, dbUser[0].password)) {
-      const token = jwt.sign({ name: dbUser.name }, process.env.JWT_SECRET, {
-        expiresIn: 86400,
-      });
+      const token = jwt.sign(
+        { userId: dbUser[0].id, name: dbUser[0].name },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: 86400,
+        }
+      );
 
       if (dbSession[0]) {
         await connection.query(
