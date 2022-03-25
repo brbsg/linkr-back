@@ -8,4 +8,5 @@ const publishesRouter = Router();
 
 publishesRouter.post("/timeline/publish", validateTokenMiddleware, validateSchemaMiddleware(publicationSchema), postPublish);
 publishesRouter.post("/timeline/posts", validateTokenMiddleware, getAllPosts);
+
 export default publishesRouter;

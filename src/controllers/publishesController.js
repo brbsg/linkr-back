@@ -45,3 +45,4 @@ export async function getAllPosts(req, res){
         res.sendStatus(500);
     }
 }
+
