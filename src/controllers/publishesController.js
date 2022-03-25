@@ -1,5 +1,5 @@
 import urlMetadata from "url-metadata";
-import connection from "../server.js";
+import connection from "../database.js";
 
 export async function postPublish(req, res) {
     const {link, text} = req.body;
