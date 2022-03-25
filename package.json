@@ -5,11 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
-    "start": "node ./src/server.js",
-=======
     "start": "node ./src/app.js",
->>>>>>> main
     "dev": "npx nodemon ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
