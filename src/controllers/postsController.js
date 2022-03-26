@@ -1,27 +1,5 @@
-import urlMetadata from "url-metadata";
-import connection from "../database.js";
-
-export async function postPublish(req, res) {
-  const { link, text } = req.body;
-  const userId = res.locals.userId;
-
-  try {
-    await connection.query(
-      `
-      INSERT INTO posts
-      ("userId", link, text)
-      VALUES
-      ($1, $2, $3);
-      `,
-      [userId, link, text]
-    );
-    console.log(userId);
-    res.sendStatus(200);
-  } catch (error) {
-    console.log(error);
-    res.sendStatus(500);
-  }
-}
+import urlMetadata from 'url-metadata';
+import connection from '../database.js';
 
 export async function getAllPosts(req, res) {
   try {
@@ -47,3 +25,27 @@ export async function getAllPosts(req, res) {
     res.sendStatus(500);
   }
 }
+
+export async function createPost(req, res) {
+  const { link, text } = req.body;
+  const userId = res.locals.userId;
+
+  try {
+    await connection.query(
+      `
+      INSERT INTO posts
+      ("userId", link, text)
+      VALUES
+      ($1, $2, $3);
+      `,
+      [userId, link, text]
+    );
+    console.log(userId);
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
+
+export async function deletePost(req, res) {}
