@@ -13,28 +13,27 @@ export async function getAllPosts(req, res) {
       ORDER BY posts.id DESC LIMIT 20 ;
     `);
 
-
     for (let i in result.rows) {
       try {
         const promise = await urlMetadata(result.rows[i].link);
-  
+
         result.rows[i].deleteOption = false;
-        if(userId === result.rows[i].userId){
+        if (userId === result.rows[i].userId) {
           result.rows[i].deleteOption = true;
         }
-  
+
         result.rows[i].linkImage = promise.image;
         result.rows[i].linkTitle = promise.title;
         result.rows[i].linkDescription = promise.description;
-      
       } catch {
         result.rows[i].deleteOption = false;
-        if(userId === result.rows[i].userId){
+        if (userId === result.rows[i].userId) {
           result.rows[i].deleteOption = true;
         }
-        result.rows[i].linkImage = "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-        result.rows[i].linkTitle = "invalid";
-        result.rows[i].linkDescription = "invalid";
+        result.rows[i].linkImage =
+          'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
+        result.rows[i].linkTitle = 'invalid';
+        result.rows[i].linkDescription = 'invalid';
       }
     }
 
@@ -66,4 +65,14 @@ export async function createPost(req, res) {
   }
 }
 
-export async function deletePost(req, res) {}
+export async function deletePost(req, res) {
+  const { id } = req.params;
+
+  try {
+    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error.message);
+    res.sendStatus(500);
+  }
+}
