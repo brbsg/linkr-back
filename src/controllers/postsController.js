@@ -6,24 +6,36 @@ export async function getAllPosts(req, res) {
 
   try {
     const result = await connection.query(`
-      SELECT posts.*, users.name, users.image, user.id 
+      SELECT posts.*, users.name, users.image
         FROM posts 
       JOIN users 
         ON posts."userId" = users.id
       ORDER BY posts.id DESC LIMIT 20 ;
     `);
 
+
     for (let i in result.rows) {
-      const promise = await urlMetadata(result.rows[i].link);
-
-      if(userId === result.rows[i].userId){
-        result.rows[i].deleteOption = true;
+      try {
+        const promise = await urlMetadata(result.rows[i].link);
+  
+        result.rows[i].deleteOption = false;
+        if(userId === result.rows[i].userId){
+          result.rows[i].deleteOption = true;
+        }
+  
+        result.rows[i].linkImage = promise.image;
+        result.rows[i].linkTitle = promise.title;
+        result.rows[i].linkDescription = promise.description;
+      
+      } catch {
+        result.rows[i].deleteOption = false;
+        if(userId === result.rows[i].userId){
+          result.rows[i].deleteOption = true;
+        }
+        result.rows[i].linkImage = "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
+        result.rows[i].linkTitle = "invalid";
+        result.rows[i].linkDescription = "invalid";
       }
-
-      result.rows[i].deleteOption = false;
-      result.rows[i].linkImage = promise.image;
-      result.rows[i].linkTitle = promise.title;
-      result.rows[i].linkDescription = promise.description;
     }
 
     res.send(result.rows);
