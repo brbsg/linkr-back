@@ -21,6 +21,8 @@ export async function toggleLike(req, res) {
 export async function getLikes(req, res) {
     const { postId } = req.params;
     console.log(postId)
+    //retornar 2 likes mais recentes
+    //retornar count de likes no post
 
     try {
         await connection.query(`
