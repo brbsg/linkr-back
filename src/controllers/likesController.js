@@ -3,7 +3,6 @@ import connection from '../database.js';
 export async function toggleLike(req, res) {
   const { postId } = req.body;
   const userId = res.locals.userId
-  console.log(userId);
 
   try {
     const result = await connection.query(
@@ -14,7 +13,6 @@ export async function toggleLike(req, res) {
       [postId, userId]
     );
 
-    console.log(result.rows);
     if (result.rowCount !== 0) {
       await connection.query(
         `
@@ -42,23 +40,23 @@ export async function toggleLike(req, res) {
 }
 
 export async function getLikes(req, res) {
-  const { postId } = req.params;
-  console.log(postId);
-  //retornar 2 likes mais recentes
-  //retornar count de likes no post
+  const { postId } = req.body;
 
   try {
-    await connection.query(
+    const result = await connection.query(
       `
         SELECT
-            users.name AS users
-            "postId"
-        FROM likes
-        JOIN users ON users.id = likes."userId"
-        WHERE postId = $1
+            users.name AS user
+        FROM users
+        JOIN likes ON likes."userId" = users.id
+        WHERE likes."postId" = $1
         `,
       [postId]
     );
+
+    const users = result.rows
+    const count = result.rowCount;
+    res.send({ users, count })
   } catch (error) {
     console.log(error);
     res.status(500).send(error);

@@ -8,7 +8,6 @@ export async function getUser(req, res) {
             SELECT image FROM users
             WHERE id = $1
         `, [userId])
-        console.log(user.rows[0].image)
         res.send(user.rows[0].image)
     } catch (error) {
         console.log(error);

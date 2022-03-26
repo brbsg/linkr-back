@@ -5,7 +5,7 @@ import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware.
 import { toggleLike, getLikes } from "../controllers/likesController.js";
 
 const likesRouter = Router();
-likesRouter.post('/likes', validateTokenMiddleware, toggleLike);
-likesRouter.get('/likes', validateTokenMiddleware, getLikes);
+likesRouter.post('/like', validateTokenMiddleware, toggleLike);
+likesRouter.post('/likes', validateTokenMiddleware, getLikes);
 
 export default likesRouter;
