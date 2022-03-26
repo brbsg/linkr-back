@@ -6,9 +6,9 @@ import createPostSchema from '../schemas/createPostSchema.js';
 
 const postsRouter = Router();
 
-postsRouter.post('/timeline/posts', validateTokenMiddleware, getAllPosts);
+postsRouter.get('/timeline', validateTokenMiddleware, getAllPosts);
 postsRouter.post(
-  '/timeline/new-post',
+  '/timeline',
   validateTokenMiddleware,
   validateSchemaMiddleware(createPostSchema),
   createPost
