@@ -40,7 +40,6 @@ export async function createPost(req, res) {
       `,
       [userId, link, text]
     );
-    console.log(userId);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);

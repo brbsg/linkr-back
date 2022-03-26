@@ -1,41 +1,64 @@
-import connection from "../database.js";
+import connection from '../database.js';
 
 export async function toggleLike(req, res) {
-    const {postId, userId} = req.body;
-    console.log(postId)
-    console.log(userId)
+  const { postId } = req.body;
+  const userId = res.locals.userId
 
-    try {
-        await connection.query(`
-        INSERT INTO likes
-            ("postId", "userId")
-        VALUES ($1, $2)
-        `, [postId, userId])
-    res.sendStatus(200)
-    } catch (error) {
-        console.log(error);
-        res.status(500).send(error);
+  try {
+    const result = await connection.query(
+      `
+        SELECT * FROM likes
+            WHERE "postId" = $1 AND "userId" = $2
+        `,
+      [postId, userId]
+    );
+
+    if (result.rowCount !== 0) {
+      await connection.query(
+        `
+                DELETE FROM likes
+                WHERE "postId" = $1 AND "userId" = $2
+        `,
+        [postId, userId]
+      );
+    } else {
+      await connection.query(
+        `
+            INSERT INTO likes
+                ("postId", "userId")
+            VALUES ($1, $2)
+            `,
+        [postId, userId]
+      );
     }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
 }
 
 export async function getLikes(req, res) {
-    const { postId } = req.params;
-    console.log(postId)
-    //retornar 2 likes mais recentes
-    //retornar count de likes no post
+  const { postId } = req.body;
 
-    try {
-        await connection.query(`
+  try {
+    const result = await connection.query(
+      `
         SELECT
-            users.name AS users
-            "postId"
-        FROM likes
-        JOIN users ON users.id = likes."userId"
-        WHERE postId = $1
-        `, [postId]
-        )
-    } catch(error) {
-        console.log(error);
-        res.status(500).send(error);
-    }
+            users.name AS user
+        FROM users
+        JOIN likes ON likes."userId" = users.id
+        WHERE likes."postId" = $1
+        `,
+      [postId]
+    );
+
+    const users = result.rows
+    const count = result.rowCount;
+    res.send({ users, count })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
 }
