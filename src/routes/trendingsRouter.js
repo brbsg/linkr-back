@@ -4,6 +4,6 @@ import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware.
 
 const trendingsRouter = Router();
 
-trendingsRouter.post("/trendings", validateTokenMiddleware, getHashtags);
+trendingsRouter.get("/trendings", validateTokenMiddleware, getHashtags);
 
 export default trendingsRouter;
