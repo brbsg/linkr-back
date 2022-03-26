@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getHashtags } from "../controllers/trendingsController";
-import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware";
+import { getHashtags } from "../controllers/trendingsController.js";
+import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware.js";
 
 const trendingsRouter = Router();
 
