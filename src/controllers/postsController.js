@@ -69,10 +69,11 @@ export async function deletePost(req, res) {
   const { id } = req.params;
 
   try {
+    await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
     await connection.query('DELETE FROM posts WHERE id=$1', [id]);
     res.sendStatus(200);
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.sendStatus(500);
   }
 }
