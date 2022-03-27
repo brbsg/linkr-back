@@ -1,5 +1,5 @@
-import urlMetadata from 'url-metadata';
-import connection from '../database.js';
+import urlMetadata from "url-metadata";
+import connection from "../database.js";
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
@@ -31,9 +31,9 @@ export async function getAllPosts(req, res) {
           result.rows[i].deleteOption = true;
         }
         result.rows[i].linkImage =
-          'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
-        result.rows[i].linkTitle = 'invalid';
-        result.rows[i].linkDescription = 'invalid';
+          "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
+        result.rows[i].linkTitle = "invalid";
+        result.rows[i].linkDescription = "invalid";
       }
     }
 
@@ -70,7 +70,7 @@ export async function deletePost(req, res) {
 
   try {
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
-    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
+    await connection.query("DELETE FROM posts WHERE id=$1", [id]);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
