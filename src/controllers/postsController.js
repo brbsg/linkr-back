@@ -17,18 +17,18 @@ export async function getAllPosts(req, res) {
       try {
         const promise = await urlMetadata(result.rows[i].link);
 
-        result.rows[i].deleteOption = false;
+        result.rows[i].delEditOption = false;
         if (userId === result.rows[i].userId) {
-          result.rows[i].deleteOption = true;
+          result.rows[i].delEditOption = true;
         }
 
         result.rows[i].linkImage = promise.image;
         result.rows[i].linkTitle = promise.title;
         result.rows[i].linkDescription = promise.description;
       } catch {
-        result.rows[i].deleteOption = false;
+        result.rows[i].delEditOption = false;
         if (userId === result.rows[i].userId) {
-          result.rows[i].deleteOption = true;
+          result.rows[i].delEditOption = true;
         }
         result.rows[i].linkImage =
           'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
@@ -74,6 +74,22 @@ export async function deletePost(req, res) {
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
+    res.sendStatus(500);
+  }
+}
+
+export async function editPost(req, res) {
+  const { id } = req.params;
+  const { newText } = req.body;
+
+  try {
+    await connection.query('UPDATE posts SET text=$1 WHERE id=$2', [
+      newText,
+      id,
+    ]);
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error.message);
     res.sendStatus(500);
   }
 }
