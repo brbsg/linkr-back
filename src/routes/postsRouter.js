@@ -3,6 +3,7 @@ import {
   getAllPosts,
   createPost,
   deletePost,
+  editPost,
 } from '../controllers/postsController.js';
 import { validateSchemaMiddleware } from '../middlewares/validateSchemaMiddleware.js';
 import { validateTokenMiddleware } from '../middlewares/validateTokenMiddleware.js';
@@ -17,7 +18,7 @@ postsRouter.post(
   validateSchemaMiddleware(createPostSchema),
   createPost
 );
-postsRouter.put('/timeline');
+postsRouter.put('/timeline/:id', editPost);
 postsRouter.delete('/timeline/:id', deletePost);
 
 export default postsRouter;
