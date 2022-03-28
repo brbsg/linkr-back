@@ -1,6 +1,6 @@
-import connection from "../database.js";
+import connection from '../database.js';
 
-export async function getHashtags(req, res){
+export async function getHashtags(req, res) {
   try {
     const result = await connection.query(`
       SELECT hashtags.*, count("hashtagsPosts".id) AS "postsNumber"
