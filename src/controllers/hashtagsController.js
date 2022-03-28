@@ -19,9 +19,9 @@ export async function getPostsByHashtag(req, res) {
     ON "hashtagsPosts"."postId"=posts.id
   JOIN users  
     ON posts."userId" = users.id
-  WHERE hashtags.name='turnip' 
+  WHERE hashtags.name=$1 
   ORDER BY posts.id DESC
-    `);
+    `, [hashtag]);
 
     for (let i in result.rows) {
       try {
