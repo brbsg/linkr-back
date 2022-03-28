@@ -60,43 +60,57 @@ export async function createPost(req, res) {
       [userId, link, text]
     );
 
-    const post = await connection.query(`
+    const post = await connection.query(
+      `
     SELECT * FROM posts
     WHERE "userId"=$1
     ORDER BY id DESC
     LIMIT(1)
-    `, [userId])
+    `,
+      [userId]
+    );
     const postId = post.rows[0].id;
 
-    hashtags.map( async(hashtag) => {
-      let result = await connection.query(`
+    hashtags.map(async (hashtag) => {
+      let result = await connection.query(
+        `
       SELECT * FROM hashtags
       WHERE name=$1
-      `, [hashtag])
+      `,
+        [hashtag]
+      );
 
       if (result.rowCount < 1) {
-        await connection.query(`
+        await connection.query(
+          `
           INSERT INTO hashtags
           (name)
           VALUES 
           ($1)
-        `, [hashtag])
+        `,
+          [hashtag]
+        );
 
-        result = await connection.query(`
+        result = await connection.query(
+          `
         SELECT * FROM hashtags
         WHERE name=$1
-      `, [hashtag]) 
-      } 
+      `,
+          [hashtag]
+        );
+      }
 
       const hashtagId = result.rows[0].id;
-      await connection.query(`
+      await connection.query(
+        `
       INSERT INTO "hashtagsPosts"
       ("postId", "hashtagId")
       VALUES
       ($1, $2)
-      `, [postId, hashtagId])
-
-    })
+      `,
+        [postId, hashtagId]
+      );
+    });
 
     res.sendStatus(200);
   } catch (error) {
@@ -109,6 +123,9 @@ export async function deletePost(req, res) {
   const { id } = req.params;
 
   try {
+    await connection.query('DELETE FROM "hashtagsPosts" WHERE "postId"=$1', [
+      id,
+    ]);
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
     await connection.query('DELETE FROM posts WHERE id=$1', [id]);
     res.sendStatus(200);
