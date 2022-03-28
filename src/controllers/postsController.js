@@ -123,6 +123,9 @@ export async function deletePost(req, res) {
   const { id } = req.params;
 
   try {
+    await connection.query('DELETE FROM "hashtagsPosts" WHERE "postId"=$1', [
+      id,
+    ]);
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
     await connection.query("DELETE FROM posts WHERE id=$1", [id]);
     res.sendStatus(200);
@@ -146,6 +149,37 @@ export async function editPost(req, res) {
       return;
     }
     res.sendStatus(200);
+  } catch (error) {
+    console.log(error.message);
+    res.sendStatus(500);
+  }
+}
+
+export async function getPostsByHashtag(req, res) {
+  const { hashtag } = req.params;
+
+  try {
+    const result = await connection.query(
+      `
+      SELECT hashtags.*, posts.id AS "postId", posts."userId", posts.link, posts.text, users.name, users.image
+        FROM hashtags
+          JOIN "hashtagsPosts"
+            ON hashtags.id = "hashtagsPosts"."hashtagId"
+              JOIN posts
+                ON posts.id = "hashtagsPosts"."postId"
+                  JOIN users
+                    ON users.id = posts."userId"
+      WHERE hashtags.name=$1
+    `,
+      [hashtag]
+    );
+
+    if (result.rowCount === 0) {
+      return res.sendStatus(404);
+    }
+
+    const [posts] = result.rows;
+    res.send(posts);
   } catch (error) {
     console.log(error.message);
     res.sendStatus(500);
