@@ -1,6 +1,6 @@
-import { hash } from 'bcrypt';
-import urlMetadata from 'url-metadata';
-import connection from '../database.js';
+import { hash } from "bcrypt";
+import urlMetadata from "url-metadata";
+import connection from "../database.js";
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
@@ -32,9 +32,9 @@ export async function getAllPosts(req, res) {
           result.rows[i].delEditOption = true;
         }
         result.rows[i].linkImage =
-          'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
-        result.rows[i].linkTitle = 'invalid';
-        result.rows[i].linkDescription = 'invalid';
+          "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
+        result.rows[i].linkTitle = "invalid";
+        result.rows[i].linkDescription = "invalid";
       }
     }
 
@@ -60,43 +60,57 @@ export async function createPost(req, res) {
       [userId, link, text]
     );
 
-    const post = await connection.query(`
+    const post = await connection.query(
+      `
     SELECT * FROM posts
     WHERE "userId"=$1
     ORDER BY id DESC
     LIMIT(1)
-    `, [userId])
+    `,
+      [userId]
+    );
     const postId = post.rows[0].id;
 
-    hashtags.map( async(hashtag) => {
-      let result = await connection.query(`
+    hashtags.map(async (hashtag) => {
+      let result = await connection.query(
+        `
       SELECT * FROM hashtags
       WHERE name=$1
-      `, [hashtag])
+      `,
+        [hashtag]
+      );
 
       if (result.rowCount < 1) {
-        await connection.query(`
+        await connection.query(
+          `
           INSERT INTO hashtags
           (name)
           VALUES 
           ($1)
-        `, [hashtag])
+        `,
+          [hashtag]
+        );
 
-        result = await connection.query(`
+        result = await connection.query(
+          `
         SELECT * FROM hashtags
         WHERE name=$1
-      `, [hashtag]) 
-      } 
+      `,
+          [hashtag]
+        );
+      }
 
       const hashtagId = result.rows[0].id;
-      await connection.query(`
+      await connection.query(
+        `
       INSERT INTO "hashtagsPosts"
       ("postId", "hashtagId")
       VALUES
       ($1, $2)
-      `, [postId, hashtagId])
-
-    })
+      `,
+        [postId, hashtagId]
+      );
+    });
 
     res.sendStatus(200);
   } catch (error) {
@@ -110,7 +124,7 @@ export async function deletePost(req, res) {
 
   try {
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
-    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
+    await connection.query("DELETE FROM posts WHERE id=$1", [id]);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -124,7 +138,7 @@ export async function editPost(req, res) {
 
   try {
     const result = await connection.query(
-      'UPDATE posts SET text=$1 WHERE id=$2',
+      "UPDATE posts SET text=$1 WHERE id=$2",
       [newText, id]
     );
     if (result.rowCount === 0) {
