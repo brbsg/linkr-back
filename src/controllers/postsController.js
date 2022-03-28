@@ -1,3 +1,4 @@
+import { hash } from 'bcrypt';
 import urlMetadata from 'url-metadata';
 import connection from '../database.js';
 
