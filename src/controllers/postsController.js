@@ -60,6 +60,14 @@ export async function createPost(req, res) {
       [userId, link, text]
     );
 
+    const post = await connection.query(`
+    SELECT * FROM posts
+    WHERE "userId"=$1
+    ORDER BY id DESC
+    LIMIT(1)
+    `, [userId])
+    const postId = post.rows[0].id;
+
     hashtags.map( async(hashtag) => {
       let result = await connection.query(`
       SELECT * FROM hashtags
@@ -79,6 +87,15 @@ export async function createPost(req, res) {
         WHERE name=$1
       `, [hashtag]) 
       } 
+
+      const hashtagId = result.rows[0].id;
+      await connection.query(`
+      INSERT INTO "hashtagsPosts"
+      ("postId", "hashtagId")
+      VALUES
+      ($1, $2)
+      `, [postId, hashtagId])
+
     })
 
     res.sendStatus(200);
