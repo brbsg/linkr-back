@@ -45,7 +45,7 @@ export async function getAllPosts(req, res) {
 }
 
 export async function createPost(req, res) {
-  const { link, text } = req.body;
+  const { link, text, hashtags } = req.body;
   const userId = res.locals.userId;
 
   try {
@@ -58,6 +58,28 @@ export async function createPost(req, res) {
       `,
       [userId, link, text]
     );
+
+    hashtags.map( async(hashtag) => {
+      let result = await connection.query(`
+      SELECT * FROM hashtags
+      WHERE name=$1
+      `, [hashtag])
+
+      if (result.rowCount < 1) {
+        await connection.query(`
+          INSERT INTO hashtags
+          (name)
+          VALUES 
+          ($1)
+        `, [hashtag])
+
+        result = await connection.query(`
+        SELECT * FROM hashtags
+        WHERE name=$1
+      `, [hashtag]) 
+      } 
+    })
+
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
