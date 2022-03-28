@@ -1,3 +1,4 @@
+import { hash } from "bcrypt";
 import urlMetadata from "url-metadata";
 import connection from "../database.js";
 
@@ -17,18 +18,18 @@ export async function getAllPosts(req, res) {
       try {
         const promise = await urlMetadata(result.rows[i].link);
 
-        result.rows[i].deleteOption = false;
+        result.rows[i].delEditOption = false;
         if (userId === result.rows[i].userId) {
-          result.rows[i].deleteOption = true;
+          result.rows[i].delEditOption = true;
         }
 
         result.rows[i].linkImage = promise.image;
         result.rows[i].linkTitle = promise.title;
         result.rows[i].linkDescription = promise.description;
       } catch {
-        result.rows[i].deleteOption = false;
+        result.rows[i].delEditOption = false;
         if (userId === result.rows[i].userId) {
-          result.rows[i].deleteOption = true;
+          result.rows[i].delEditOption = true;
         }
         result.rows[i].linkImage =
           "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
@@ -45,7 +46,7 @@ export async function getAllPosts(req, res) {
 }
 
 export async function createPost(req, res) {
-  const { link, text } = req.body;
+  const { link, text, hashtags } = req.body;
   const userId = res.locals.userId;
 
   try {
@@ -58,6 +59,59 @@ export async function createPost(req, res) {
       `,
       [userId, link, text]
     );
+
+    const post = await connection.query(
+      `
+    SELECT * FROM posts
+    WHERE "userId"=$1
+    ORDER BY id DESC
+    LIMIT(1)
+    `,
+      [userId]
+    );
+    const postId = post.rows[0].id;
+
+    hashtags.map(async (hashtag) => {
+      let result = await connection.query(
+        `
+      SELECT * FROM hashtags
+      WHERE name=$1
+      `,
+        [hashtag]
+      );
+
+      if (result.rowCount < 1) {
+        await connection.query(
+          `
+          INSERT INTO hashtags
+          (name)
+          VALUES 
+          ($1)
+        `,
+          [hashtag]
+        );
+
+        result = await connection.query(
+          `
+        SELECT * FROM hashtags
+        WHERE name=$1
+      `,
+          [hashtag]
+        );
+      }
+
+      const hashtagId = result.rows[0].id;
+      await connection.query(
+        `
+      INSERT INTO "hashtagsPosts"
+      ("postId", "hashtagId")
+      VALUES
+      ($1, $2)
+      `,
+        [postId, hashtagId]
+      );
+    });
+
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -74,6 +128,26 @@ export async function deletePost(req, res) {
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
+    res.sendStatus(500);
+  }
+}
+
+export async function editPost(req, res) {
+  const { id } = req.params;
+  const { newText } = req.body;
+
+  try {
+    const result = await connection.query(
+      "UPDATE posts SET text=$1 WHERE id=$2",
+      [newText, id]
+    );
+    if (result.rowCount === 0) {
+      res.sendStatus(404);
+      return;
+    }
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error.message);
     res.sendStatus(500);
   }
 }

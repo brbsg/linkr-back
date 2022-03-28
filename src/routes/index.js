@@ -6,6 +6,7 @@ import trendingsRouter from "./trendingsRouter.js";
 import likesRouter from "./likesRouter.js";
 import userRouter from "./userRouter.js";
 import validateTokenRouter from "./validateTokenRouter.js";
+import hashtagsRouter from "./hashtagsRouter.js";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use(signInRouter);
 router.use(userRouter);
 router.use(postsRouter);
 router.use(validateTokenRouter);
+router.use(hashtagsRouter);
 
 export default router;
