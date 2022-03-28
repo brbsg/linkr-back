@@ -2,7 +2,7 @@ import connection from '../database.js';
 
 export async function toggleLike(req, res) {
   const { postId } = req.body;
-  const userId = res.locals.userId
+  const userId = res.locals.userId;
 
   try {
     const result = await connection.query(
@@ -54,9 +54,29 @@ export async function getLikes(req, res) {
       [postId]
     );
 
-    const users = result.rows
+    const users = result.rows;
     const count = result.rowCount;
-    res.send({ users, count })
+    res.send({ users, count });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+}
+export async function getUserLikes(req, res) {
+  const userId = res.locals.userId;
+
+  try {
+    const result = await connection.query(
+      `
+      SELECT "postId" 
+      FROM likes
+      WHERE "userId"=$1
+    `,
+      [userId]
+    );
+    const posts = result.rows;
+    res.send(posts);
+
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
