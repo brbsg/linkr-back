@@ -1,5 +1,46 @@
 import connection from "../database.js";
 
+export async function getUserName(req, res) {
+  const { id } = req.params;
+
+  try {
+    const user = await connection.query(
+      `
+            SELECT * FROM users
+            WHERE id = $1
+        `,
+      [id]
+    );
+
+    console.log(user.rows[0]);
+    res.send(user.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+}
+
+export async function searchUsers(req, res) {
+  const { search } = req.body;
+
+  try {
+    const { rows: dbUser } = await connection.query(
+      `
+      SELECT * 
+      FROM users
+      WHERE LOWER(name) LIKE LOWER($1)
+    `,
+      [`${search}%`]
+    );
+
+    console.log(dbUser);
+
+    res.send(dbUser);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function getUserPosts(req, res) {
   const userId = res.locals.userId;
 
@@ -11,12 +52,10 @@ export async function getUserPosts(req, res) {
         JOIN users 
             ON posts."userId" = users.id
         WHERE posts."userId"=$1
-        ORDER BY posts.id DESC LIMIT 20 ;
+        ORDER BY posts.id DESC LIMIT 20 
     `,
       [req.params.id]
     );
-
-    console.log(dbPosts);
 
     for (let i in dbPosts) {
       try {
