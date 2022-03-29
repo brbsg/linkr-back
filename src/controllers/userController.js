@@ -104,3 +104,59 @@ export async function getUser(req, res) {
     res.status(500).send(error);
   }
 }
+
+export async function verifyFollow(req, res){
+  const {id} = req.params;
+  const userId = res.locals.userId;
+
+  try {
+    const result = await connection.query(
+      `
+        SELECT * FROM followers WHERE "followerId" = $1 AND "followedId" = $2;
+      `, [userId, id]);
+    if(result.rowCount === 0){
+      return res.send(false);
+    }
+    res.send(true);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
+
+export async function toggleFollow(req, res){
+  const {id} = req.params;
+  const userId = res.locals.userId;
+  
+  try {
+    const result = await connection.query(
+      `
+        SELECT * FROM followers WHERE "followerId" = $1 AND "followedId" = $2;
+      `, [userId, id]);
+    if(result.rowCount !== 0){
+      try {
+        await connection.query(
+          `
+            DELETE FROM followers WHERE followers.id = $1;
+          `, [result.rows[0].id]);
+        
+        return res.send(false);
+      } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+      }
+    }
+    await connection.query(
+      `
+        INSERT INTO followers 
+          ("followerId", "followedId")
+        VALUES
+         ($1, $2);
+      `,[userId, id]);
+    
+    res.send(true);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
