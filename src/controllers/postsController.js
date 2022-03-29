@@ -1,4 +1,3 @@
-import { hash } from "bcrypt";
 import urlMetadata from "url-metadata";
 import connection from "../database.js";
 
@@ -15,26 +14,9 @@ export async function getAllPosts(req, res) {
     `);
 
     for (let i in result.rows) {
-      try {
-        const promise = await urlMetadata(result.rows[i].link);
-
-        result.rows[i].delEditOption = false;
-        if (userId === result.rows[i].userId) {
-          result.rows[i].delEditOption = true;
-        }
-
-        result.rows[i].linkImage = promise.image;
-        result.rows[i].linkTitle = promise.title;
-        result.rows[i].linkDescription = promise.description;
-      } catch {
-        result.rows[i].delEditOption = false;
-        if (userId === result.rows[i].userId) {
-          result.rows[i].delEditOption = true;
-        }
-        result.rows[i].linkImage =
-          "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-        result.rows[i].linkTitle = "invalid";
-        result.rows[i].linkDescription = "invalid";
+      result.rows[i].delEditOption = false;
+      if (userId === result.rows[i].userId) {
+        result.rows[i].delEditOption = true;
       }
     }
 
@@ -46,27 +28,43 @@ export async function getAllPosts(req, res) {
 }
 
 export async function createPost(req, res) {
-  const { link, text, hashtags } = req.body;
+  const { link, description, hashtags } = req.body;
   const userId = res.locals.userId;
 
   try {
+    let linkImage;
+    let linkTitle;
+    let linkDescription;
+    try {
+      const promise = await urlMetadata(link);
+
+      linkImage = promise.image;
+      linkTitle = promise.title;
+      linkDescription = promise.description;
+    } catch (error) {
+      linkImage =
+        "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
+      linkTitle = "invalid";
+      linkDescription = "invalid";
+    }
+
     await connection.query(
       `
       INSERT INTO posts
-      ("userId", link, text)
+      ("userId", link, description, "linkImage", "linkTitle", "linkDescription")
       VALUES
-      ($1, $2, $3);
+      ($1, $2, $3, $4, $5, $6);
       `,
-      [userId, link, text]
+      [userId, link, description, linkImage, linkTitle, linkDescription]
     );
 
     const post = await connection.query(
       `
-    SELECT * FROM posts
-    WHERE "userId"=$1
-    ORDER BY id DESC
-    LIMIT(1)
-    `,
+      SELECT * FROM posts
+      WHERE "userId"=$1
+      ORDER BY id DESC
+      LIMIT(1)
+      `,
       [userId]
     );
     const postId = post.rows[0].id;
