@@ -21,10 +21,23 @@ export async function getUserName(req, res) {
 }
 
 export async function searchUsers(req, res) {
+  const { userId } = res.locals;
   const { search } = req.body;
+  let allUsers = [];
 
   try {
-    const { rows: dbUser } = await connection.query(
+    let { rows: dbFollowing } = await connection.query(
+      `
+      select users.*, "followedId" from followers
+      join users on users.id=followers."followedId"
+      WHERE LOWER(name) LIKE LOWER($1) and followers."followerId"=$2
+    `,
+      [`${search}%`, userId]
+    );
+
+    allUsers.push(...dbFollowing);
+
+    let { rows: dbUsers } = await connection.query(
       `
       SELECT * 
       FROM users
@@ -33,9 +46,21 @@ export async function searchUsers(req, res) {
       [`${search}%`]
     );
 
-    console.log(dbUser);
+    function checkIncludes(e) {
+      for (let i in dbFollowing) {
+        if (e.id === dbFollowing[i].id || e.id === userId) {
+          return false;
+        }
+      }
 
-    res.send(dbUser);
+      return true;
+    }
+
+    dbUsers = dbUsers.filter((e) => checkIncludes(e));
+
+    allUsers.push(...dbUsers);
+
+    res.send(allUsers);
   } catch (error) {
     console.log(error);
   }
@@ -105,16 +130,18 @@ export async function getUser(req, res) {
   }
 }
 
-export async function verifyFollow(req, res){
-  const {id} = req.params;
+export async function verifyFollow(req, res) {
+  const { id } = req.params;
   const userId = res.locals.userId;
 
   try {
     const result = await connection.query(
       `
         SELECT * FROM followers WHERE "followerId" = $1 AND "followedId" = $2;
-      `, [userId, id]);
-    if(result.rowCount === 0){
+      `,
+      [userId, id]
+    );
+    if (result.rowCount === 0) {
       return res.send(false);
     }
     res.send(true);
@@ -124,26 +151,30 @@ export async function verifyFollow(req, res){
   }
 }
 
-export async function toggleFollow(req, res){
-  const {id} = req.params;
+export async function toggleFollow(req, res) {
+  const { id } = req.params;
   const userId = res.locals.userId;
 
-  if(userId === id){
+  if (userId === id) {
     return res.sendStatus(401);
   }
-  
+
   try {
     const result = await connection.query(
       `
         SELECT * FROM followers WHERE "followerId" = $1 AND "followedId" = $2;
-      `, [userId, id]);
-    if(result.rowCount !== 0){
+      `,
+      [userId, id]
+    );
+    if (result.rowCount !== 0) {
       try {
         await connection.query(
           `
             DELETE FROM followers WHERE followers.id = $1;
-          `, [result.rows[0].id]);
-        
+          `,
+          [result.rows[0].id]
+        );
+
         return res.send(false);
       } catch (error) {
         console.log(error);
@@ -156,8 +187,10 @@ export async function toggleFollow(req, res){
           ("followerId", "followedId")
         VALUES
          ($1, $2);
-      `,[userId, id]);
-    
+      `,
+      [userId, id]
+    );
+
     res.send(true);
   } catch (error) {
     console.log(error);
