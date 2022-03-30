@@ -139,7 +139,7 @@ export async function editPost(req, res) {
 
   try {
     const result = await connection.query(
-      "UPDATE posts SET text=$1 WHERE id=$2",
+      "UPDATE posts SET description=$1 WHERE id=$2",
       [newText, id]
     );
     if (result.rowCount === 0) {
