@@ -48,7 +48,7 @@ export async function searchUsers(req, res) {
 
     function checkIncludes(e) {
       for (let i in dbFollowing) {
-        if (e.id === dbFollowing[i].id || e.id === userId) {
+        if (e.id === dbFollowing[i].id) {
           return false;
         }
       }
