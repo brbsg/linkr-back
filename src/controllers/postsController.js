@@ -1,18 +1,20 @@
-import urlMetadata from "url-metadata";
-import connection from "../database.js";
+import urlMetadata from 'url-metadata';
+import connection from '../database.js';
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
 
   try {
-    const result = await connection.query(`
-      SELECT posts.*, users.name, users.image
-        FROM posts 
-      JOIN users 
-        ON posts."userId" = users.id
-      ORDER BY posts.id DESC LIMIT 20 ;
-    `);
-
+    const result = await connection.query(
+      `
+      select posts.*,users.name, users.image
+        from followers
+          join users on users.id=followers."followedId"
+            join posts on followers."followedId" = posts."userId"
+              WHERE followers."followerId"=$1 
+    `,
+      [userId]
+    );
     for (let i in result.rows) {
       result.rows[i].delEditOption = false;
       if (userId === result.rows[i].userId) {
@@ -43,9 +45,9 @@ export async function createPost(req, res) {
       linkDescription = promise.description;
     } catch (error) {
       linkImage =
-        "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-      linkTitle = "invalid";
-      linkDescription = "invalid";
+        'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
+      linkTitle = 'invalid';
+      linkDescription = 'invalid';
     }
 
     await connection.query(
@@ -125,7 +127,7 @@ export async function deletePost(req, res) {
       id,
     ]);
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
-    await connection.query("DELETE FROM posts WHERE id=$1", [id]);
+    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -139,7 +141,7 @@ export async function editPost(req, res) {
 
   try {
     const result = await connection.query(
-      "UPDATE posts SET description=$1 WHERE id=$2",
+      'UPDATE posts SET description=$1 WHERE id=$2',
       [newText, id]
     );
     if (result.rowCount === 0) {
