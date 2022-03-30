@@ -7,6 +7,7 @@ import likesRouter from "./likesRouter.js";
 import userRouter from "./userRouter.js";
 import validateTokenRouter from "./validateTokenRouter.js";
 import hashtagsRouter from "./hashtagsRouter.js";
+import commentsRouter from "./commentsRouter.js";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use(userRouter);
 router.use(postsRouter);
 router.use(validateTokenRouter);
 router.use(hashtagsRouter);
+router.use(commentsRouter)
 
 export default router;
