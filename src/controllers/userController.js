@@ -155,6 +155,10 @@ export async function toggleFollow(req, res) {
   const { id } = req.params;
   const userId = res.locals.userId;
 
+  if (userId === id) {
+    return res.sendStatus(401);
+  }
+
   try {
     const result = await connection.query(
       `
