@@ -41,7 +41,14 @@ export async function signIn(req, res) {
         );
       }
 
-      return res.send(token);
+      const user = {
+        id: dbUser[0].id,
+        name: dbUser[0].name,
+        image: dbUser[0].image,
+
+      }
+
+      return res.send({token: token, user: user});
     }
 
     res.sendStatus(401);
