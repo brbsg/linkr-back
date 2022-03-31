@@ -2,8 +2,9 @@ import { Router } from 'express';
 import {
   getAllPosts,
   createPost,
+  rePost,
   deletePost,
-  editPost,
+  editPost
 } from '../controllers/postsController.js';
 import { validateSchemaMiddleware } from '../middlewares/validateSchemaMiddleware.js';
 import { validateTokenMiddleware } from '../middlewares/validateTokenMiddleware.js';
@@ -18,6 +19,7 @@ postsRouter.post(
   validateSchemaMiddleware(createPostSchema),
   createPost
 );
+postsRouter.post('/timeline/:postId', validateTokenMiddleware, rePost);
 postsRouter.put('/timeline/:id', editPost);
 postsRouter.delete('/timeline/:id', deletePost);
 
