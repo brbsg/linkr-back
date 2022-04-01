@@ -1,5 +1,5 @@
-import urlMetadata from 'url-metadata';
-import connection from '../database.js';
+import urlMetadata from "url-metadata";
+import connection from "../database.js";
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
@@ -9,7 +9,7 @@ export async function getAllPosts(req, res) {
       [userId]
     );
     if (isFollowing.rowCount === 0) {
-      const posts = 'No friends';
+      const posts = "No friends";
       return res.send(posts);
     }
 
@@ -24,7 +24,8 @@ export async function getAllPosts(req, res) {
           
           WHERE followers."followerId" = $1
           ORDER BY posts.id DESC LIMIT 40;
-      `,[userId]
+      `,
+      [userId]
     );
 
     for (let i in result.rows) {
@@ -34,6 +35,7 @@ export async function getAllPosts(req, res) {
       }
     }
 
+    console.log(result.rows);
     res.send(result.rows);
   } catch (error) {
     console.log(error);
@@ -57,9 +59,9 @@ export async function createPost(req, res) {
       linkDescription = promise.description;
     } catch (error) {
       linkImage =
-        'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
-      linkTitle = 'invalid';
-      linkDescription = 'invalid';
+        "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
+      linkTitle = "invalid";
+      linkDescription = "invalid";
     }
 
     await connection.query(
@@ -131,9 +133,9 @@ export async function createPost(req, res) {
   }
 }
 
-export async function rePost(req, res){
-  const {postId} = req.params;
-  const {userId} = res.locals;
+export async function rePost(req, res) {
+  const { postId } = req.params;
+  const { userId } = res.locals;
   console.log(postId);
   console.log(userId);
 
@@ -146,32 +148,41 @@ export async function rePost(req, res){
     //   WHERE "hashtagsPosts"."postId" = $1;
     // `, [postId]);
 
-    const result = await connection.query(`
+    const result = await connection.query(
+      `
       SELECT * FROM posts WHERE posts.id = $1;
-    `, [postId])
+    `,
+      [postId]
+    );
 
     console.log(result.rows[0]);
 
-    await connection.query(`
+    await connection.query(
+      `
       INSERT INTO posts
         ("userId", link, description, "linkImage", "linkTitle", "linkDescription")
       VALUES
         ($1, $2, $3, $4, $5, $6);
-    `, [
-      result.rows[0].userId, 
-      result.rows[0].link, 
-      result.rows[0].description, 
-      result.rows[0].linkImage, 
-      result.rows[0].linkTitle, 
-      result.rows[0].linkDescription
-    ]);
+    `,
+      [
+        result.rows[0].userId,
+        result.rows[0].link,
+        result.rows[0].description,
+        result.rows[0].linkImage,
+        result.rows[0].linkTitle,
+        result.rows[0].linkDescription,
+      ]
+    );
 
-    const repost = await connection.query(`
+    const repost = await connection.query(
+      `
       SELECT * FROM posts
       WHERE posts."userId" = $1
       ORDER BY posts.id DESC
       LIMIT 1;
-    `, [result.rows[0].userId]);
+    `,
+      [result.rows[0].userId]
+    );
 
     // const reREpost = await connection.query(`
     // SELECT reposts.*, "postB".id AS "newPostId"
@@ -180,27 +191,33 @@ export async function rePost(req, res){
     //   ON "postA".id = reposts."postId"
     // JOIN posts "postB"
     //  ON "postB"."userId" = "postA"."userId"
-    // WHERE reposts."postId" = $1 
+    // WHERE reposts."postId" = $1
     // ORDER BY "newPostId" DESC
     // LIMIT 1;
     // `, [postId]);
 
     console.log(repost.rows);
 
-    await connection.query(`
+    await connection.query(
+      `
       INSERT INTO reposts
         ("userId", "postId")
       VALUES 
         ($1, $2);
-    `, [userId, repost.rows[0].id]);
+    `,
+      [userId, repost.rows[0].id]
+    );
 
-    const hashtags = await connection.query(`
+    const hashtags = await connection.query(
+      `
       SELECT * FROM "hashtagsPosts" 
       WHERE "hashtagsPosts"."postId" = $1;
-    `, [postId]);
+    `,
+      [postId]
+    );
 
-    if(hashtags){
-      hashtags.rows.map( async (post) => {
+    if (hashtags) {
+      hashtags.rows.map(async (post) => {
         await connection.query(
           `
         INSERT INTO "hashtagsPosts"
@@ -210,7 +227,7 @@ export async function rePost(req, res){
         `,
           [repost.rows[0].id, post.hashtagId]
         );
-      })
+      });
     }
 
     res.sendStatus(201);
@@ -228,7 +245,7 @@ export async function deletePost(req, res) {
       id,
     ]);
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
-    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
+    await connection.query("DELETE FROM posts WHERE id=$1", [id]);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -242,7 +259,7 @@ export async function editPost(req, res) {
 
   try {
     const result = await connection.query(
-      'UPDATE posts SET description=$1 WHERE id=$2',
+      "UPDATE posts SET description=$1 WHERE id=$2",
       [newText, id]
     );
     if (result.rowCount === 0) {

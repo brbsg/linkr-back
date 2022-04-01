@@ -68,10 +68,10 @@ export async function searchUsers(req, res) {
 
 export async function getUserPosts(req, res) {
   const { userId } = res.locals;
-  const {id} = req.params;
+  const { id } = req.params;
 
   try {
-    const  result = await connection.query(
+    const result = await connection.query(
       `
       SELECT posts.*, users.name, users.image
       FROM posts
