@@ -67,46 +67,31 @@ export async function searchUsers(req, res) {
 }
 
 export async function getUserPosts(req, res) {
-  const userId = res.locals.userId;
+  const { userId } = res.locals;
+  const {id} = req.params;
 
   try {
-    const { rows: dbPosts } = await connection.query(
+    const  result = await connection.query(
       `
-        SELECT posts.*, users.name,users.image 
-            FROM posts 
-        JOIN users 
-            ON posts."userId" = users.id
-        WHERE posts."userId"=$1
-        ORDER BY posts.id DESC LIMIT 20 
+      SELECT posts.*, users.name, users.image
+      FROM posts
+      JOIN users 
+        ON users.id = posts."userId"
+      WHERE posts."userId"=$1
+      ORDER BY posts.id DESC 
+      LIMIT 10;
     `,
-      [req.params.id]
+      [id]
     );
 
-    for (let i in dbPosts) {
-      try {
-        const promise = await urlMetadata(dbPosts[i].link);
-
-        dbPosts[i].deleteOption = false;
-        if (userId === dbPosts[i].userId) {
-          dbPosts[i].deleteOption = true;
-        }
-
-        dbPosts[i].linkImage = promise.image;
-        dbPosts[i].linkTitle = promise.title;
-        dbPosts[i].linkDescription = promise.description;
-      } catch {
-        dbPosts[i].deleteOption = false;
-        if (userId === dbPosts[i].userId) {
-          dbPosts[i].deleteOption = true;
-        }
-        dbPosts[i].linkImage =
-          "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-        dbPosts[i].linkTitle = "invalid";
-        dbPosts[i].linkDescription = "invalid";
+    for (let i in result.rows) {
+      result.rows[i].delEditOption = false;
+      if (userId === result.rows[i].userId) {
+        result.rows[i].delEditOption = true;
       }
     }
 
-    res.send(dbPosts);
+    res.send(result.rows);
   } catch (error) {
     console.log(error);
   }

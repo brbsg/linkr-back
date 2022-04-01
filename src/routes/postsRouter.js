@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getAllPosts,
   createPost,
+  rePost,
   deletePost,
   editPost,
   newPostsAlert,
@@ -20,6 +21,7 @@ postsRouter.post(
   validateSchemaMiddleware(createPostSchema),
   createPost
 );
+postsRouter.post('/timeline/:postId', validateTokenMiddleware, rePost);
 postsRouter.put('/timeline/:id', editPost);
 postsRouter.delete('/timeline/:id', deletePost);
 
