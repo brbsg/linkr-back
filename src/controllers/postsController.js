@@ -1,21 +1,44 @@
-import urlMetadata from "url-metadata";
-import connection from "../database.js";
+import urlMetadata from 'url-metadata';
+import connection from '../database.js';
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
-
-  //   select posts.*,a.name, a.image, reposts."userId" as "reposterId", b.name as "reposterName"
-  // from followers
-  //   join users a on a.id=followers."followedId"
-  //   join posts on followers."followedId" = posts."userId"
-  //   left join reposts on reposts."postId"=posts.id
-  //   left join users b on b.id=reposts."userId"
-  //   WHERE followers."followerId"=$1
   try {
+    const isFollowing = await connection.query(
+      `SELECT * FROM followers f WHERE f."followerId" = $1`,
+      [userId]
+    );
+    if (isFollowing.rowCount === 0) {
+      const posts = 'No friends';
+      return res.send(posts);
+    }
+
     const result = await connection.query(
-    `
-    select * FROM posts ORDER BY posts.id DESC limit 10;
-    `);
+      `SELECT 
+        posts.*, 
+        a.name, 
+        a.image, 
+        reposts."userId" as "reposterId", 
+        b.name as "reposterName",
+        COUNT(likes.id) AS "likesNumber"
+
+        FROM followers
+
+      JOIN users a 
+        ON a.id = followers."followedId"
+      JOIN posts 
+        ON posts."userId" = followers."followedId"
+      LEFT JOIN reposts 
+        ON reposts."postId" = posts.id
+      LEFT JOIN users b 
+        ON b.id=reposts."userId"
+      LEFT JOIN likes
+        ON likes."userId" = posts.id
+      WHERE followers."followerId" = $1 
+      GROUP BY posts.id, a.name, a.image, "reposterId", b.name
+      ORDER BY posts.id DESC LIMIT 20`,
+      [userId]
+    );
 
     for (let i in result.rows) {
       result.rows[i].delEditOption = false;
@@ -47,9 +70,9 @@ export async function createPost(req, res) {
       linkDescription = promise.description;
     } catch (error) {
       linkImage =
-        "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-      linkTitle = "invalid";
-      linkDescription = "invalid";
+        'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
+      linkTitle = 'invalid';
+      linkDescription = 'invalid';
     }
 
     await connection.query(
@@ -128,13 +151,17 @@ export async function rePost(req, res){
   console.log(userId);
 
   try {
+    // const result = await connection.query(`
+    //   SELECT posts.*, "hashtagsPosts"."hashtagId"
+    //     FROM "hashtagsPosts"
+    //   RIGHT JOIN posts
+    //     ON  posts.id = "hashtagsPosts"."postId"
+    //   WHERE "hashtagsPosts"."postId" = $1;
+    // `, [postId]);
+
     const result = await connection.query(`
-      SELECT posts.*, "hashtagsPosts"."hashtagId"
-        FROM "hashtagsPosts"
-      JOIN posts
-        ON  posts.id = "hashtagsPosts"."postId"
-      WHERE "hashtagsPosts"."postId" = $1;
-    `, [postId]);
+      SELECT * FROM posts WHERE posts.id = $1;
+    `, [postId])
 
     console.log(result.rows[0]);
 
@@ -152,38 +179,52 @@ export async function rePost(req, res){
       result.rows[0].linkDescription
     ]);
 
+    const repost = await connection.query(`
+      SELECT * FROM posts
+      WHERE posts."userId" = $1
+      ORDER BY posts.id DESC
+      LIMIT 1;
+    `, [result.rows[0].userId]);
+
+    // const reREpost = await connection.query(`
+    // SELECT reposts.*, "postB".id AS "newPostId"
+    //   FROM reposts
+    // JOIN posts "postA"
+    //   ON "postA".id = reposts."postId"
+    // JOIN posts "postB"
+    //  ON "postB"."userId" = "postA"."userId"
+    // WHERE reposts."postId" = $1 
+    // ORDER BY "newPostId" DESC
+    // LIMIT 1;
+    // `, [postId]);
+
+    console.log(repost.rows);
+
     await connection.query(`
       INSERT INTO reposts
         ("userId", "postId")
       VALUES 
         ($1, $2);
-    `, [userId, postId]);
+    `, [userId, repost.rows[0].id]);
 
-    const repost = await connection.query(`
-    SELECT reposts.*, "postB".id AS "newPostId"
-      FROM reposts
-    JOIN posts "postA"
-      ON "postA".id = reposts."postId"
-    JOIN posts "postB"
-     ON "postB"."userId" = "postA"."userId"
-    WHERE reposts."postId" = $1 
-    ORDER BY "newPostId" DESC
-    LIMIT 1;
+    const hashtags = await connection.query(`
+      SELECT * FROM "hashtagsPosts" 
+      WHERE "hashtagsPosts"."postId" = $1;
     `, [postId]);
 
-    console.log(repost.rows);
-
-    result.rows.map( async (post) => {
-      await connection.query(
-        `
-      INSERT INTO "hashtagsPosts"
-        ("postId", "hashtagId")
-      VALUES
-        ($1, $2)
-      `,
-        [repost.rows[0].newPostId, post.hashtagId]
-      );
-    })
+    if(hashtags){
+      hashtags.rows.map( async (post) => {
+        await connection.query(
+          `
+        INSERT INTO "hashtagsPosts"
+          ("postId", "hashtagId")
+        VALUES
+          ($1, $2)
+        `,
+          [repost.rows[0].id, post.hashtagId]
+        );
+      })
+    }
 
     res.sendStatus(201);
   } catch (error) {
@@ -200,7 +241,7 @@ export async function deletePost(req, res) {
       id,
     ]);
     await connection.query('DELETE FROM likes WHERE "postId"=$1', [id]);
-    await connection.query("DELETE FROM posts WHERE id=$1", [id]);
+    await connection.query('DELETE FROM posts WHERE id=$1', [id]);
     res.sendStatus(200);
   } catch (error) {
     console.log(error);
@@ -214,7 +255,7 @@ export async function editPost(req, res) {
 
   try {
     const result = await connection.query(
-      "UPDATE posts SET description=$1 WHERE id=$2",
+      'UPDATE posts SET description=$1 WHERE id=$2',
       [newText, id]
     );
     if (result.rowCount === 0) {
