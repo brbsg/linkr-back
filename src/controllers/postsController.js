@@ -195,3 +195,25 @@ export async function getPostsByHashtag(req, res) {
     res.sendStatus(500);
   }
 }
+
+export async function newPostsAlert(req, res) {
+  const userId = res.locals.userId;
+
+  try {
+    const result = await connection.query(
+      `SELECT COUNT(posts.*)
+        FROM followers
+          JOIN users a ON a.id = followers."followedId"
+          JOIN posts ON followers."followedId" = posts."userId"
+          LEFT JOIN reposts ON reposts."postId" = posts.id
+          LEFT JOIN users b ON b.id=reposts."userId"
+          WHERE followers."followerId" = $1`,
+      [userId]
+    );
+    console.log(result.rows[0]);
+    res.send(result.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+}
