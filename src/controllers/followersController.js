@@ -11,7 +11,6 @@ export async function getFollowing(req, res) {
         JOIN users ON "followedId"=users.id
         WHERE "followerId"=$1
         `, [userId])
-        console.log(result.rows)
         res.send(result.rows)
     } catch(error) {
         console.log(error);
