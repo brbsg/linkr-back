@@ -3,6 +3,7 @@ import connection from '../database.js';
 
 export async function getAllPosts(req, res) {
   const userId = res.locals.userId;
+  console.log(userId) //ok
 
   try {
     const isFollowing = await connection.query(
