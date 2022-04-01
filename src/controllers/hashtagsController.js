@@ -2,7 +2,7 @@ import connection from '../database.js';
 
 export async function getPostsByHashtag(req, res) {
   const { hashtag } = req.params;
-  const userId = res.locals.userId;
+  const { userId } = res.locals;
 
   try {
     const result = await connection.query(`
@@ -24,26 +24,9 @@ export async function getPostsByHashtag(req, res) {
     `, [hashtag]);
 
     for (let i in result.rows) {
-      try {
-        const promise = await urlMetadata(result.rows[i].link);
-
-        result.rows[i].delEditOption = false;
-        if (userId === result.rows[i].userId) {
-          result.rows[i].delEditOption = true;
-        }
-
-        result.rows[i].linkImage = promise.image;
-        result.rows[i].linkTitle = promise.title;
-        result.rows[i].linkDescription = promise.description;
-      } catch {
-        result.rows[i].delEditOption = false;
-        if (userId === result.rows[i].userId) {
-          result.rows[i].delEditOption = true;
-        }
-        result.rows[i].linkImage =
-          'https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg';
-        result.rows[i].linkTitle = 'invalid';
-        result.rows[i].linkDescription = 'invalid';
+      result.rows[i].delEditOption = false;
+      if (userId === result.rows[i].userId) {
+        result.rows[i].delEditOption = true;
       }
     }
 

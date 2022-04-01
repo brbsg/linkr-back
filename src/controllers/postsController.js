@@ -14,30 +14,17 @@ export async function getAllPosts(req, res) {
     }
 
     const result = await connection.query(
-      `SELECT 
-        posts.*, 
-        a.name, 
-        a.image, 
-        reposts."userId" as "reposterId", 
-        b.name as "reposterName",
-        COUNT(likes.id) AS "likesNumber"
-
+      `
+      SELECT posts.*, a.name, a.image, reposts."userId" as "reposterId", b.name as "reposterName"
         FROM followers
-
-      JOIN users a 
-        ON a.id = followers."followedId"
-      JOIN posts 
-        ON posts."userId" = followers."followedId"
-      LEFT JOIN reposts 
-        ON reposts."postId" = posts.id
-      LEFT JOIN users b 
-        ON b.id=reposts."userId"
-      LEFT JOIN likes
-        ON likes."userId" = posts.id
-      WHERE followers."followerId" = $1 
-      GROUP BY posts.id, a.name, a.image, "reposterId", b.name
-      ORDER BY posts.id DESC LIMIT 20`,
-      [userId]
+          JOIN users a ON a.id = followers."followedId"
+          JOIN posts ON followers."followedId" = posts."userId"
+          LEFT JOIN reposts ON reposts."postId" = posts.id
+          LEFT JOIN users b ON b.id=reposts."userId"
+          
+          WHERE followers."followerId" = $1
+          ORDER BY posts.id DESC LIMIT 40;
+      `,[userId]
     );
 
     for (let i in result.rows) {
