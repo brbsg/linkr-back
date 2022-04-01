@@ -83,28 +83,13 @@ export async function getUserPosts(req, res) {
     );
 
     for (let i in dbPosts) {
-      try {
-        const promise = await urlMetadata(dbPosts[i].link);
-
-        dbPosts[i].deleteOption = false;
-        if (userId === dbPosts[i].userId) {
-          dbPosts[i].deleteOption = true;
-        }
-
-        dbPosts[i].linkImage = promise.image;
-        dbPosts[i].linkTitle = promise.title;
-        dbPosts[i].linkDescription = promise.description;
-      } catch {
-        dbPosts[i].deleteOption = false;
-        if (userId === dbPosts[i].userId) {
-          dbPosts[i].deleteOption = true;
-        }
-        dbPosts[i].linkImage =
-          "https://pbs.twimg.com/profile_images/1605443902/error-avatar.jpg";
-        dbPosts[i].linkTitle = "invalid";
-        dbPosts[i].linkDescription = "invalid";
+      dbPosts[i].delEditOption = false;
+      if (userId === dbPosts[i].userId) {
+        dbPosts[i].delEditOption = true;
       }
     }
+
+    console.log(dbPosts);
 
     res.send(dbPosts);
   } catch (error) {
