@@ -8,6 +8,7 @@ import userRouter from "./userRouter.js";
 import validateTokenRouter from "./validateTokenRouter.js";
 import hashtagsRouter from "./hashtagsRouter.js";
 import commentsRouter from "./commentsRouter.js";
+import followingRouter from "./followingRouter.js";
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use(postsRouter);
 router.use(validateTokenRouter);
 router.use(hashtagsRouter);
 router.use(commentsRouter)
+router.use(followingRouter)
 
 export default router;
