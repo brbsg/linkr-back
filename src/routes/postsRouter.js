@@ -2,8 +2,10 @@ import { Router } from 'express';
 import {
   getAllPosts,
   createPost,
+  rePost,
   deletePost,
   editPost,
+  newPostsAlert,
 } from '../controllers/postsController.js';
 import { validateSchemaMiddleware } from '../middlewares/validateSchemaMiddleware.js';
 import { validateTokenMiddleware } from '../middlewares/validateTokenMiddleware.js';
@@ -12,12 +14,14 @@ import createPostSchema from '../schemas/createPostSchema.js';
 const postsRouter = Router();
 
 postsRouter.get('/timeline', validateTokenMiddleware, getAllPosts);
+postsRouter.get('/timeline/newPosts', validateTokenMiddleware, newPostsAlert);
 postsRouter.post(
   '/timeline',
   validateTokenMiddleware,
   validateSchemaMiddleware(createPostSchema),
   createPost
 );
+postsRouter.post('/timeline/:postId', validateTokenMiddleware, rePost);
 postsRouter.put('/timeline/:id', editPost);
 postsRouter.delete('/timeline/:id', deletePost);
 
